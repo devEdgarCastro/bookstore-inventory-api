@@ -1,0 +1,182 @@
+{
+  "info": {
+    "_postman_id": "8f1c2d4a-5b6e-4f70-9c1a-bookstore0001",
+    "name": "Bookstore Inventory API",
+    "description": "Bookstore inventory backend (Django 5 + DRF). Base URL has no /api prefix. Variables: baseUrl (http://localhost:8000) and bookId (id of an existing book).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000", "type": "string" },
+    { "key": "bookId", "value": "1", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "description": "Liveness probe.",
+      "item": [
+        {
+          "name": "GET /healthz",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/healthz",
+              "host": ["{{baseUrl}}"],
+              "path": ["healthz"]
+            },
+            "description": "Returns 200 {\"status\":\"ok\"}."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Books",
+      "description": "Book resource: CRUD plus the optional search and low-stock endpoints. All list endpoints return {count, next, previous, results}.",
+      "item": [
+        {
+          "name": "POST /books (create)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"El Quijote\", \"author\": \"Miguel de Cervantes\", \"isbn\": \"978-84-376-0494-7\", \"cost_usd\": \"15.99\", \"stock_quantity\": 25, \"category\": \"Literatura Clásica\", \"supplier_country\": \"ES\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/books",
+              "host": ["{{baseUrl}}"],
+              "path": ["books"]
+            },
+            "description": "201 Created with the full book representation (id, created_at, updated_at, selling_price_local=null). Invalid payloads return 400 with DRF field errors, e.g. {\"cost_usd\": [\"Ensure this value is greater than or equal to 0.01.\"]} or {\"isbn\": [\"A book with this ISBN already exists.\"]}."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /books (list, paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/books?page=1&page_size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["books"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "10" }
+              ]
+            },
+            "description": "200 {count, next, previous, results}. page_size is capped at 100 and defaults to the PAGE_SIZE setting (10). An empty page parameter falls back to the first page."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /books/{id} (retrieve)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/books/{{bookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["books", "{{bookId}}"]
+            },
+            "description": "200 with the book, or 404 {\"detail\": \"No Book matches the given query.\"}."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /books/{id} (update)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"El Quijote (2nd ed.)\", \"author\": \"Miguel de Cervantes\", \"isbn\": \"978-84-376-0494-7\", \"cost_usd\": \"20.00\", \"stock_quantity\": 8, \"category\": \"Literatura Clásica\", \"supplier_country\": \"ES\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/books/{{bookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["books", "{{bookId}}"]
+            },
+            "description": "200 with the updated book. 400 for rule violations (including an ISBN already used by another book) and 404 for an unknown id."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /books/{id} (delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/books/{{bookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["books", "{{bookId}}"]
+            },
+            "description": "204 No Content, or 404 for an unknown id."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /books/search (by category)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/books/search?category=Literatura%20Cl%C3%A1sica&page=1&page_size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["books", "search"],
+              "query": [
+                { "key": "category", "value": "Literatura Clásica" },
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "10" }
+              ]
+            },
+            "description": "200 with the paginated envelope. The category match is case-insensitive; omitting category returns the whole catalogue."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /books/low-stock",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/books/low-stock?threshold=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["books", "low-stock"],
+              "query": [{ "key": "threshold", "value": "10" }]
+            },
+            "description": "200 with every book whose stock_quantity <= threshold (inclusive). threshold defaults to 10; a non-numeric or negative threshold returns 400 {\"threshold\": [\"...\"]}."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Price calculation",
+      "description": "External integration: current USD -> local currency rate plus the configured profit margin, persisted on the book.",
+      "item": [
+        {
+          "name": "POST /books/{id}/calculate-price",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/books/{{bookId}}/calculate-price",
+              "host": ["{{baseUrl}}"],
+              "path": ["books", "{{bookId}}", "calculate-price"]
+            },
+            "description": "Calculates cost_local = round_half_up(cost_usd * exchange_rate), selling_price_local = round_half_up(cost_usd * exchange_rate * (1 + margin/100)) with margin 40%, persists selling_price_local and returns:\n\n{\n  \"book_id\": 1,\n  \"cost_usd\": 15.99,\n  \"exchange_rate\": 0.85,\n  \"cost_local\": 13.59,\n  \"margin_percentage\": 40,\n  \"selling_price_local\": 19.03,\n  \"currency\": \"EUR\",\n  \"calculation_timestamp\": \"2025-01-15T10:30:00Z\",\n  \"exchange_rate_source\": \"live\"\n}\n\nexchange_rate_source is \"live\" on success and \"fallback\" when the FX provider failed and EXCHANGE_FALLBACK_ENABLED is true. A failed provider with the fallback disabled returns 503 {\"detail\": \"The USD to EUR exchange rate is currently unavailable. Please try again later.\"}; an unknown book id returns 404; GET/PUT/PATCH/DELETE return 405."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
