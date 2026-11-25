@@ -1,0 +1,15 @@
+.git
+.gitignore
+.idea
+.venv
+venv
+__pycache__
+*.py[cod]
+*.sqlite3
+db.sqlite3
+.env
+.pytest_cache
+.ruff_cache
+.mypy_cache
+staticfiles
+*.log
