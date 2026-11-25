@@ -68,7 +68,7 @@ S14. PLUS: Dockerize the whole project (backend + frontend + database).
 - FX failure/timeout -> HTTP `200` with `exchange_rate_source: "fallback"`. HTTP `503` only when the rate is unavailable **and** fallback is disabled.
 - Default DB = SQLite for local dev; Postgres via docker-compose (S14). Settings driven by env vars.
 - Docker CLI is not installed in this environment, so Docker files ship but are reported unverified.
-- **Repo layout (user decision, L6):** the frontend stays a sibling at `Nextep/frontend`, outside the `bookstore-inventory-api` git repo. Consequence accepted: deliverable S13.1's "one repository link" covers the backend repo only; the SPA must be published separately (second remote or manual add) before submission. Docker compose therefore references `../frontend`, which only resolves while both folders sit side by side.
+- **Repo layout (user decision, L8 — supersedes L6):** the SPA now lives at `bookstore-inventory-api/frontend/`, inside the git repository, so one repository link satisfies S13.1. Docker compose builds it from `./frontend` and `.dockerignore` keeps it out of the backend image context. Reverting L6 required regenerating `node_modules` with `npm ci`, because a live `ng serve` held an OS-level lock on the old directory.
 
 ## Tasks
 
@@ -93,6 +93,7 @@ Owner `FE` = gentle-ai-worker task `mwwje4gh-2-0hcw` (surface `frontend/**`).
 | T14 | Parent verification: `manage.py test`, live curl smoke, `npm run build` | S1-S12 | parent | inline | evidence in L7 | done |
 | T15 | Work-unit commits on `feature/fullstack-implementation` | S13.1 | parent | inline | 7 commits, see history | done |
 | T16 | Mirror `odd/` into `bookstore-inventory-api/odd/` so the reviewer sees the tracking (backend repo only, per L6) | S13.1 | parent | inline | mirror commit | done |
+| T17 | Integrate `frontend/` into the repo, fix compose/dockerignore/README, prepare the push (L8) | S13.1, S14 | parent | inline | `f1c0433` | done |
 
 ## Log
 
@@ -119,3 +120,12 @@ L7 (parent verification evidence, executed by me, not taken from worker reports)
 - Corrected during verification (my own harness errors, not product defects): Git Bash mangled UTF-8 in one curl body, and a create used an ISBN already present in the seeded DB, leaving `$ID` empty and turning later URLs into `//calculate-price`. Re-run with a unique ISBN.
 - `.env.example` decision (option 1, agent-owned): ship `env.example`; the file name is not part of S1-S14 and the substantive requirement (template shipped, no real `.env`, `.env` gitignored) is met. No repo change made.
 - Unverified and reported as such: Docker images and compose (no Docker CLI); the SPA has no live browser integration run, so its flows rest on 33 unit tests, a clean production build and the confirmed route contract.
+
+L8 (user, verbatim): "puedes integrar la carpeta frontend dentro de la carpeta bookstore-inventory-api? y preparar todo para subir a git?"
+
+L9 (decision and evidence, from L8): reverses L6, so S13.1's single repository link now covers both halves.
+- Stopped the user's running `ng serve` (PID 5724 + esbuild 28912, spawned by `npm run start`). It must be restarted from the new path. Pi's own harness processes (28060/27128) were identified and left alone.
+- The old `Nextep/frontend` refused `mv` and `Move-Item` with "being used by another process" even after `ng serve` died; a hard Windows handle on the directory survived. Rather than force it, the 53 source files (excluding `node_modules`, `dist`, `.angular`) were copied with `tar` and the dependency tree regenerated with `npm ci` from `package-lock.json`.
+- Fixed the compose build context `../frontend` -> `./frontend`, added `frontend` to `.dockerignore` (without it the backend image context dragged 283 MB of `node_modules`), corrected four README references, and gitignored the stray `Microsoft/` PowerShell cache instead of deleting a user file.
+- Integration commit `f1c0433`: 53 SPA source files plus the compose, `.dockerignore`, README and `.gitignore` corrections. Verified from the new path: `npm ci` exit 0 (288 packages) and `npm run build` exit 0 into `frontend/dist/frontend`.
+- Nothing is pushed: publishing stays a human decision. The stale `Nextep/frontend` directory may remain until the locking process is closed; it is outside the repository and harmless.
