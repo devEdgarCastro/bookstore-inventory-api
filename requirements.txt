@@ -1,4 +1,4 @@
-# Bookstore Inventory API — runtime dependencies (Python 3.12).
+# Bookstore Inventory API — runtime dependencies (Python 3.11+).
 Django>=5.1,<6.0
 djangorestframework>=3.15,<4.0
 django-cors-headers>=4.4,<5.0

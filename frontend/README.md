@@ -16,15 +16,19 @@ API built with Django REST Framework.
 
 ## Requirements
 
-- Node.js 24 LTS and npm 11.
+- Node.js 22.22.3+ or 24.15+ (Angular 22 engine range; verified on 24.18.0)
+- npm 8+
+
+The Angular CLI is a local dev dependency, so no global install is needed — `npm install` brings it
+in and the `npm` scripts below use it.
 
 ## Install and run
 
 ```bash
 npm install
-npm start          # dev server on http://localhost:4200
-npm run build      # production bundle in dist/frontend/browser
-npm test           # unit tests (vitest)
+npm start                      # dev server on http://localhost:4200
+npm run build                  # production bundle in dist/frontend/browser
+npm test -- --watch=false      # unit tests once (plain `npm test` stays in watch mode)
 ```
 
 The API base URL lives in `src/environments/environment.ts`

@@ -8,7 +8,7 @@ configurable profit margin.
 The Angular SPA lives in the `frontend/` directory of this repository and consumes exactly the
 API described below.
 
-- **Language / framework:** Python 3.12, Django 5.2, Django REST Framework 3.18
+- **Language / framework:** Python 3.11+ (verified on 3.11.5), Django 5.2, Django REST Framework 3.18
 - **Database:** SQLite for local development, PostgreSQL 16 in Docker
 - **Local currency:** `EUR` (configurable), profit margin `40 %` (configurable)
 
@@ -18,11 +18,12 @@ API described below.
 
 | Tool | Version | Needed for |
 | --- | --- | --- |
-| Python | 3.12 | backend (this repository) |
+| Python | 3.11+ (3.12 recommended) | backend (this repository) |
 | `venv` | bundled with Python | isolated dependencies |
 | pip | bundled with Python | dependency installation |
-| Node.js | 20 LTS or 22 LTS | Angular SPA in `frontend/` |
-| Angular CLI | 18+ (or `npx @angular/cli`) | Angular SPA in `frontend/` |
+| Node.js | 22.22.3+ or 24.15+ | Angular SPA in `frontend/` (Angular 22 engine range) |
+| npm | 8+ | Angular SPA in `frontend/` |
+| Angular CLI | 22, installed locally by `npm install` (no global install needed) | Angular SPA in `frontend/` |
 | Docker + Docker Compose | 24+ | optional, `docker-compose.yml` |
 
 The API has no frontend build step; the SPA is a separate project.
@@ -51,6 +52,8 @@ bookstore-inventory-api/
 │   │   └── seed_books.py       # 12 sample books, idempotent
 │   ├── migrations/0001_initial.py
 │   └── tests/                  # offline test suite (no network)
+├── frontend/                   # Angular 22 SPA (own package.json and container image)
+├── odd/tasks/                  # requirements, task ledger, verification evidence
 ├── postman/                    # exported Postman collection
 ├── requirements.txt
 ├── env.example                 # copy to ".env" (never commit the real file)
@@ -67,13 +70,18 @@ bookstore-inventory-api/
 
 ```bash
 # macOS / Linux
-python3.12 -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 
 # Windows (PowerShell / cmd)
-py -3.12 -m venv .venv
+python -m venv .venv
 .venv\Scripts\activate
 ```
+
+If `python`, `python3` or `py` is not on your PATH, call the interpreter by full path when
+creating the environment (for example
+`"C:\Program Files\Python311\python.exe" -m venv .venv`), and then either activate it or skip
+activation and prefix every command below with `.venv/Scripts/python.exe`.
 
 ### 3.2 Install dependencies
 
@@ -197,19 +205,28 @@ List responses (list, search, low-stock) share the paginated envelope:
 ### 5.2 Create a book
 
 ```bash
+# NOTE: 978-84-376-0494-7 already exists after `seed_books`, so use a fresh ISBN.
 curl -i -X POST http://localhost:8000/books \
   -H "Content-Type: application/json" \
   -d '{
-        "title": "El Quijote",
-        "author": "Miguel de Cervantes",
-        "isbn": "978-84-376-0494-7",
+        "title": "Rayuela",
+        "author": "Julio Cortazar",
+        "isbn": "978-84-322-1234-5",
         "cost_usd": "15.99",
         "stock_quantity": 25,
-        "category": "Literatura Clásica",
+        "category": "Literatura",
         "supplier_country": "ES"
       }'
 # HTTP/1.1 201 Created
 ```
+
+This body is deliberately ASCII-only. On Windows, some shells encode an inline `curl -d` body as
+cp1252, and the API correctly rejects it with
+`JSON parse error - 'utf-8' codec can't decode byte 0xe1`. If your data needs accents, put the body
+in a UTF-8 file and send it with `curl --data-binary @book.json ...`.
+
+The seeded catalogue does contain accented values such as `Literatura Clásica`; those are fine to
+`GET` with percent-encoding (see 5.5).
 
 Validation failures return DRF field errors, e.g. `cost_usd: 0`:
 
@@ -251,6 +268,9 @@ curl -i -X DELETE http://localhost:8000/books/1
 # HTTP/1.1 204 No Content
 ```
 
+These examples mutate the seeded catalogue. `python manage.py seed_books` is idempotent and
+recreates any sample book you delete, so you can restore the demo data at any time.
+
 ### 5.5 Search by category and low stock
 
 ```bash
@@ -266,9 +286,11 @@ Both return the same paginated envelope and accept `page` / `page_size`.
 curl -i -X POST http://localhost:8000/books/1/calculate-price
 ```
 
-Response for a book with `cost_usd = 15.99` and a `USD -> EUR` rate of `0.85`
+Illustrative response for a book with `cost_usd = 15.99` and a `USD -> EUR` rate of `0.85`
 (`15.99 * 0.85 = 13.5915 -> 13.59`, `13.5915 * 1.40 = 19.0281 -> 19.03`,
-`ROUND_HALF_UP`, 2 decimals):
+`ROUND_HALF_UP`, 2 decimals). A live rate varies, so `exchange_rate`, `cost_local` and
+`selling_price_local` will differ from this sample; `exchange_rate_source` reports whether the
+provider or the fallback supplied the rate:
 
 ```json
 {
