@@ -1,0 +1,196 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <p class="eyebrow">{{ isEdit() ? 'Edición' : 'Alta de inventario' }}</p>
+      <h1>{{ isEdit() ? 'Editar libro' : 'Nuevo libro' }}</h1>
+      <p class="page__subtitle">
+        {{ isEdit()
+          ? 'Actualiza los datos del libro. Se envía un PUT al servidor.'
+          : 'Completa los datos del libro. Se envía un POST al servidor.' }}
+      </p>
+    </div>
+    <a class="btn btn-ghost" routerLink="/books">← Volver al catálogo</a>
+  </header>
+
+  @if (loading()) {
+    <div class="panel loader" role="status" aria-live="polite">
+      <span class="spinner" aria-hidden="true"></span>
+      <span>Cargando los datos del libro…</span>
+    </div>
+  } @else {
+    <form class="panel book-form" [formGroup]="form" (submit)="submit($event)" novalidate>
+      @if (formError(); as message) {
+        <div class="notice notice--danger" role="alert">{{ message }}</div>
+      }
+
+      <div class="book-form__grid">
+        <div class="field">
+          <label for="title">Título <span class="req" aria-hidden="true">*</span></label>
+          <input
+            id="title"
+            type="text"
+            formControlName="title"
+            autocomplete="off"
+            [class.input-error]="fieldError('title') !== '' || serverError('title') !== ''"
+            [attr.aria-invalid]="fieldError('title') !== '' || serverError('title') !== ''"
+          />
+          @if (fieldError('title'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+          @if (serverError('title'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label for="author">Autor <span class="req" aria-hidden="true">*</span></label>
+          <input
+            id="author"
+            type="text"
+            formControlName="author"
+            autocomplete="off"
+            [class.input-error]="fieldError('author') !== '' || serverError('author') !== ''"
+            [attr.aria-invalid]="fieldError('author') !== '' || serverError('author') !== ''"
+          />
+          @if (fieldError('author'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+          @if (serverError('author'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label for="isbn">ISBN <span class="req" aria-hidden="true">*</span></label>
+          <input
+            id="isbn"
+            type="text"
+            formControlName="isbn"
+            autocomplete="off"
+            placeholder="978-84-376-0494-7"
+            [class.input-error]="fieldError('isbn') !== '' || serverError('isbn') !== ''"
+            [attr.aria-invalid]="fieldError('isbn') !== '' || serverError('isbn') !== ''"
+          />
+          <p class="field__hint">10 o 13 dígitos; los guiones y espacios se ignoran.</p>
+          @if (fieldError('isbn'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+          @if (serverError('isbn'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label for="category">Categoría <span class="req" aria-hidden="true">*</span></label>
+          <input
+            id="category"
+            type="text"
+            formControlName="category"
+            autocomplete="off"
+            placeholder="Literatura Clásica"
+            [class.input-error]="fieldError('category') !== '' || serverError('category') !== ''"
+            [attr.aria-invalid]="fieldError('category') !== '' || serverError('category') !== ''"
+          />
+          @if (fieldError('category'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+          @if (serverError('category'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label for="cost_usd">Costo en USD <span class="req" aria-hidden="true">*</span></label>
+          <input
+            id="cost_usd"
+            type="number"
+            min="0.01"
+            step="0.01"
+            formControlName="cost_usd"
+            [class.input-error]="fieldError('cost_usd') !== '' || serverError('cost_usd') !== ''"
+            [attr.aria-invalid]="fieldError('cost_usd') !== '' || serverError('cost_usd') !== ''"
+          />
+          @if (fieldError('cost_usd'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+          @if (serverError('cost_usd'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label for="stock_quantity">
+            Stock <span class="req" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="stock_quantity"
+            type="number"
+            min="0"
+            step="1"
+            formControlName="stock_quantity"
+            [class.input-error]="fieldError('stock_quantity') !== '' || serverError('stock_quantity') !== ''"
+            [attr.aria-invalid]="fieldError('stock_quantity') !== '' || serverError('stock_quantity') !== ''"
+          />
+          @if (fieldError('stock_quantity'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+          @if (serverError('stock_quantity'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label for="supplier_country">
+            País del proveedor <span class="req" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="supplier_country"
+            type="text"
+            formControlName="supplier_country"
+            autocomplete="off"
+            maxlength="2"
+            placeholder="ES"
+            [class.input-error]="fieldError('supplier_country') !== '' || serverError('supplier_country') !== ''"
+            [attr.aria-invalid]="fieldError('supplier_country') !== '' || serverError('supplier_country') !== ''"
+          />
+          <p class="field__hint">Código ISO de 2 letras.</p>
+          @if (fieldError('supplier_country'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+          @if (serverError('supplier_country'); as message) {
+            <p class="field-error">{{ message }}</p>
+          }
+        </div>
+      </div>
+
+      @if (otherServerErrors().length > 0) {
+        <div class="notice notice--danger" role="alert">
+          <p class="notice__title">El servidor rechazó la solicitud</p>
+          <ul class="notice__list">
+            @for (entry of otherServerErrors(); track entry.field) {
+              <li>
+                <strong>{{ serverErrorLabel(entry.field) }}:</strong>
+                {{ entry.messages.join(' ') }}
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      <div class="book-form__actions">
+        <button type="submit" class="btn btn-primary" [disabled]="saving()">
+          @if (saving()) {
+            <span class="spinner spinner--sm" aria-hidden="true"></span>
+            Guardando…
+          } @else {
+            {{ isEdit() ? 'Guardar cambios' : 'Crear libro' }}
+          }
+        </button>
+        <a class="btn btn-ghost" routerLink="/books">Cancelar</a>
+        <span class="muted book-form__mode">
+          {{ isEdit() ? 'Actualizando un registro existente (PUT)' : 'Creando un registro nuevo (POST)' }}
+        </span>
+      </div>
+    </form>
+  }
+</section>

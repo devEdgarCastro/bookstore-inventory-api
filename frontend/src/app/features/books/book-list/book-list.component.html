@@ -1,0 +1,226 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <p class="eyebrow">Panel de inventario</p>
+      <h1>Catálogo de libros</h1>
+      <p class="page__subtitle">
+        Consulta el inventario, filtra por categoría o stock bajo y calcula el precio de venta con
+        la tasa de cambio del día.
+      </p>
+    </div>
+    <a class="btn btn-primary" routerLink="/books/new">+ Nuevo libro</a>
+  </header>
+
+  <form class="panel filters" (submit)="applyFilters($event)">
+    <div class="filters__grid">
+      <div class="field">
+        <label for="filter-category">Buscar por categoría</label>
+        <input
+          id="filter-category"
+          type="text"
+          autocomplete="off"
+          placeholder="Ej. Literatura Clásica"
+          [value]="categoryDraft()"
+          (input)="onCategoryInput($event)"
+        />
+        <p class="field__hint">Consulta el endpoint /books/search.</p>
+      </div>
+
+      <div class="field">
+        <label for="filter-threshold">Umbral de stock bajo</label>
+        <input
+          id="filter-threshold"
+          type="number"
+          min="0"
+          step="1"
+          [value]="thresholdDraft()"
+          (input)="onThresholdInput($event)"
+        />
+        <p class="field__hint">Libros con stock ≤ umbral (endpoint /books/low-stock).</p>
+      </div>
+
+      <div class="field field--check">
+        <label class="checkbox" for="filter-low-stock">
+          <input
+            id="filter-low-stock"
+            type="checkbox"
+            [checked]="lowStockOnly()"
+            (change)="onLowStockToggle($event)"
+          />
+          <span>Ver solo stock bajo</span>
+        </label>
+        <p class="field__hint">Tiene prioridad sobre el filtro de categoría.</p>
+      </div>
+    </div>
+
+    <div class="filters__actions">
+      <button type="submit" class="btn btn-primary">Aplicar filtros</button>
+      <button type="button" class="btn btn-ghost" (click)="clearFilters()">Limpiar</button>
+      <span class="filters__status">{{ activeFilterLabel() }}</span>
+    </div>
+  </form>
+
+  <div class="panel table-panel">
+    <div class="table-panel__head">
+      <p class="table-panel__count" role="status">
+        @if (loading()) {
+          Cargando libros…
+        } @else if (count() === 0) {
+          Sin libros para mostrar
+        } @else {
+          {{ count() }} libro(s) · mostrando {{ rangeStart() }}–{{ rangeEnd() }}
+        }
+      </p>
+      <label class="page-size" for="page-size">
+        Filas por página
+        <select id="page-size" [value]="pageSize()" (change)="onPageSizeChange($event)">
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size">{{ size }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    @if (loading()) {
+      <div class="loader" role="status" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Obteniendo libros del servidor…</span>
+      </div>
+    } @else if (books().length === 0) {
+      <div class="empty">
+        <h2 class="empty__title">No hay libros que coincidan</h2>
+        <p class="empty__text">
+          Ajusta los filtros o registra un nuevo libro para comenzar a llenar el inventario.
+        </p>
+        <div class="empty__actions">
+          <a class="btn btn-primary" routerLink="/books/new">+ Nuevo libro</a>
+          <button type="button" class="btn btn-ghost" (click)="clearFilters()">
+            Quitar filtros
+          </button>
+        </div>
+      </div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <caption class="sr-only">Inventario de libros</caption>
+          <thead>
+            <tr>
+              <th scope="col">Título</th>
+              <th scope="col">Autor</th>
+              <th scope="col" class="col-secondary">ISBN</th>
+              <th scope="col">Categoría</th>
+              <th scope="col" class="num">Costo (USD)</th>
+              <th scope="col" class="num">Precio local</th>
+              <th scope="col" class="num">Stock</th>
+              <th scope="col" class="col-secondary">País</th>
+              <th scope="col" class="actions-col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (book of books(); track book.id) {
+              <tr>
+                <td class="cell-title">{{ book.title }}</td>
+                <td>{{ book.author }}</td>
+                <td class="mono col-secondary">{{ book.isbn }}</td>
+                <td><span class="chip">{{ book.category }}</span></td>
+                <td class="num">{{ book.cost_usd | number: '1.2-2' }}</td>
+                <td class="num">
+                  @if (book.selling_price_local !== null) {
+                    {{ book.selling_price_local | number: '1.2-2' }}
+                  } @else {
+                    <span class="muted">—</span>
+                  }
+                </td>
+                <td class="num">
+                  <span class="stock" [class.stock--low]="isLowStock(book)">
+                    {{ book.stock_quantity }}
+                  </span>
+                </td>
+                <td class="col-secondary">{{ book.supplier_country }}</td>
+                <td class="actions-col">
+                  <div class="actions">
+                    <button
+                      type="button"
+                      class="btn btn-accent btn-sm"
+                      (click)="calculate(book)"
+                      [disabled]="calculatingId() !== null"
+                    >
+                      @if (calculatingId() === book.id) {
+                        <span class="spinner spinner--sm" aria-hidden="true"></span>
+                        Calculando…
+                      } @else {
+                        Calcular Precio de Venta
+                      }
+                    </button>
+                    <a class="btn btn-ghost btn-sm" [routerLink]="['/books', book.id, 'edit']">
+                      Editar
+                    </a>
+                    <button type="button" class="btn btn-danger btn-sm" (click)="askDelete(book)">
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="pager">
+        <button
+          type="button"
+          class="btn btn-ghost"
+          [disabled]="!hasPrevious() || loading()"
+          (click)="goToPage(page() - 1)"
+        >
+          ← Anterior
+        </button>
+        <span class="pager__status">Página {{ page() }} de {{ totalPages() }}</span>
+        <button
+          type="button"
+          class="btn btn-ghost"
+          [disabled]="!hasNext() || loading()"
+          (click)="goToPage(page() + 1)"
+        >
+          Siguiente →
+        </button>
+      </footer>
+    }
+  </div>
+</section>
+
+<app-confirm-dialog
+  [open]="deleting() !== null"
+  title="Eliminar libro"
+  [message]="deleteMessage()"
+  confirmLabel="Eliminar"
+  cancelLabel="Cancelar"
+  [busy]="deleteBusy()"
+  (confirmed)="confirmDelete()"
+  (cancelled)="cancelDelete()"
+/>
+
+@if (calculation(); as calculation) {
+  <div class="modal-overlay" (click)="closeCalculation()">
+    <div
+      class="modal-panel modal-panel--wide"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="calculation-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-panel__head">
+        <h2 id="calculation-title" class="modal-panel__title">Cálculo del precio de venta</h2>
+        <button
+          type="button"
+          class="btn btn-ghost btn-sm"
+          (click)="closeCalculation()"
+          aria-label="Cerrar el desglose"
+        >
+          ✕
+        </button>
+      </header>
+      <app-price-breakdown [calculation]="calculation" [bookTitle]="calculationTitle()" />
+    </div>
+  </div>
+}

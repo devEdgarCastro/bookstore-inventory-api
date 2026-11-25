@@ -1,0 +1,84 @@
+.app-header {
+  background: #0b1220;
+  color: #e2e8f0;
+  border-bottom: 1px solid rgb(148 163 184 / 20%);
+}
+
+.app-header__inner {
+  width: min(76rem, 100%);
+  margin: 0 auto;
+  padding: 0.8rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #f8fafc;
+  text-decoration: none;
+  border-radius: 0.5rem;
+}
+
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.55rem;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.brand__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brand__text strong {
+  font-size: 0.98rem;
+  letter-spacing: 0.01em;
+}
+
+.brand__text small {
+  font-size: 0.66rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.app-nav {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.app-nav a {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.42rem 0.8rem;
+  border-radius: 0.5rem;
+}
+
+.app-nav a:hover {
+  background: rgb(148 163 184 / 18%);
+  color: #ffffff;
+}
+
+.app-nav a.is-active {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.app-nav a:focus-visible,
+.brand:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}

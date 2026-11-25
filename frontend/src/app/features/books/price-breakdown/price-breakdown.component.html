@@ -1,0 +1,50 @@
+<div class="price-breakdown">
+  @if (bookTitle(); as title) {
+    <p class="price-breakdown__book">{{ title }}</p>
+  }
+
+  <dl class="breakdown">
+    <div class="breakdown__row">
+      <dt>Costo original</dt>
+      <dd>{{ calculation().cost_usd | number: '1.2-2' }} USD</dd>
+    </div>
+    <div class="breakdown__row">
+      <dt>Tasa de cambio aplicada (USD → {{ calculation().currency }})</dt>
+      <dd>
+        <span class="mono">{{ calculation().exchange_rate | number: '1.4-4' }}</span>
+        @if (isFallback()) {
+          <span class="badge badge--warning">Tasa de respaldo</span>
+        } @else {
+          <span class="badge badge--success">Tasa en vivo</span>
+        }
+      </dd>
+    </div>
+    <div class="breakdown__row">
+      <dt>Costo en {{ calculation().currency }}</dt>
+      <dd>{{ calculation().cost_local | number: '1.2-2' }}</dd>
+    </div>
+    <div class="breakdown__row">
+      <dt>Margen de ganancia</dt>
+      <dd>{{ calculation().margin_percentage | number: '1.0-2' }}%</dd>
+    </div>
+    <div class="breakdown__row breakdown__row--total">
+      <dt>Precio final de venta</dt>
+      <dd>{{ calculation().selling_price_local | number: '1.2-2' }} {{ calculation().currency }}</dd>
+    </div>
+    <div class="breakdown__row">
+      <dt>Calculado</dt>
+      <dd>{{ calculation().calculation_timestamp | date: 'dd/MM/yyyy HH:mm:ss' }}</dd>
+    </div>
+    <div class="breakdown__row">
+      <dt>Fuente de la tasa</dt>
+      <dd>{{ sourceLabel() }}</dd>
+    </div>
+  </dl>
+
+  @if (isFallback()) {
+    <p class="notice notice--warning">
+      La API de tasas de cambio no respondió. El servidor aplicó la tasa de respaldo configurada,
+      así que el precio puede no reflejar el mercado actual.
+    </p>
+  }
+</div>

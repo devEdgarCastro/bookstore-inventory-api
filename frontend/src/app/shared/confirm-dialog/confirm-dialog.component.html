@@ -1,0 +1,32 @@
+@if (open()) {
+  <div class="modal-overlay" (click)="onBackdropClick()">
+    <div
+      class="modal-panel confirm"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-title"
+      aria-describedby="confirm-message"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="confirm-title" class="confirm__title">{{ title() }}</h2>
+      <p id="confirm-message" class="confirm__message">{{ message() }}</p>
+      <div class="confirm__actions">
+        <button type="button" class="btn btn-ghost" (click)="cancelled.emit()" [disabled]="busy()">
+          {{ cancelLabel() }}
+        </button>
+        <button
+          #confirmButton
+          type="button"
+          [class]="tone() === 'danger' ? 'btn btn-danger' : 'btn btn-primary'"
+          (click)="confirmed.emit()"
+          [disabled]="busy()"
+        >
+          @if (busy()) {
+            <span class="spinner spinner--sm" aria-hidden="true"></span>
+          }
+          {{ busy() ? 'Procesando…' : confirmLabel() }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

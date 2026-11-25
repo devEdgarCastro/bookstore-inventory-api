@@ -13,3 +13,7 @@ db.sqlite3
 .mypy_cache
 staticfiles
 *.log
+
+# Angular SPA: built as its own image from ./frontend, never copied into the
+# backend image context (it would drag node_modules along).
+frontend

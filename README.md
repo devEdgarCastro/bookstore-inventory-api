@@ -5,7 +5,7 @@ book catalogue (CRUD, category search, low-stock view) and calculates the sugges
 local selling price from the current `USD -> local currency` exchange rate with a
 configurable profit margin.
 
-The Angular SPA lives in the sibling `frontend/` directory and consumes exactly the
+The Angular SPA lives in the `frontend/` directory of this repository and consumes exactly the
 API described below.
 
 - **Language / framework:** Python 3.12, Django 5.2, Django REST Framework 3.18
@@ -21,8 +21,8 @@ API described below.
 | Python | 3.12 | backend (this repository) |
 | `venv` | bundled with Python | isolated dependencies |
 | pip | bundled with Python | dependency installation |
-| Node.js | 20 LTS or 22 LTS | Angular SPA in `../frontend` |
-| Angular CLI | 18+ (or `npx @angular/cli`) | Angular SPA in `../frontend` |
+| Node.js | 20 LTS or 22 LTS | Angular SPA in `frontend/` |
+| Angular CLI | 18+ (or `npx @angular/cli`) | Angular SPA in `frontend/` |
 | Docker + Docker Compose | 24+ | optional, `docker-compose.yml` |
 
 The API has no frontend build step; the SPA is a separate project.
@@ -334,7 +334,7 @@ book, put its `id` into the `bookId` variable, and run the requests.
 | --- | --- | --- | --- |
 | `db` | `postgres:16` | internal | `pg_isready` healthcheck, named volume `pgdata` |
 | `backend` | `Dockerfile` (python:3.12-slim + gunicorn) | `8000:8000` | waits for `db` to be healthy, runs `migrate`, `seed_books`, then gunicorn |
-| `frontend` | `../frontend/Dockerfile` | `4200:80` | static Angular build served by nginx |
+| `frontend` | `frontend/Dockerfile` | `4200:80` | static Angular build served by nginx |
 
 ```bash
 cp env.example .env    # optional: override POSTGRES_*, SECRET_KEY, ...
